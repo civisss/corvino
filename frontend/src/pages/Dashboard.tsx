@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchActiveSignals, fetchStatsOverview, triggerGenerate, fetchCurrentPrices } from '../api/client'
+import { fetchActiveSignals, fetchStatsOverview, triggerGenerate, fetchCurrentPrices, fetchConfig } from '../api/client'
 import SignalCard from '../components/SignalCard'
 import './Dashboard.css'
 
@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(300) // 5 minutes in seconds
   const [prices, setPrices] = useState<Record<string, number>>({})
+  const [decimalsMap, setDecimalsMap] = useState<Record<string, number>>({})
 
   const load = async () => {
     setLoading(true)
@@ -51,6 +52,27 @@ export default function Dashboard() {
 
   // Auto-scan timer
   useEffect(() => {
+    fetchConfig().then(cfg => {
+      const map: Record<string, number> = {}
+      if (cfg.assets) {
+        Object.keys(cfg.assets).forEach(k => {
+          map[k] = cfg.assets[k].decimals
+        })
+      }
+      setDecimalsMap(map)
+    }).catch(console.error)
+
+    // Immediate scan check
+    // If no signals and we just loaded, maybe trigger?
+    // User requested: "immediate scan on load"
+    // We can set timeLeft to 1 if we want it to trigger via the interval,
+    // OR just call handleGenerate() if we know we want it.
+    // Let's set timeLeft to 1 to force trigger via existing effect if we want,
+    // BUT existing effect runs every 1s.
+
+    // Better: separate effect for immediate trigger
+    handleGenerate()
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -151,6 +173,7 @@ export default function Dashboard() {
                 key={s.id}
                 signal={s}
                 currentPrice={prices[s.asset] || prices[s.asset.split(':')[0]]}
+                decimals={decimalsMap[s.asset] || decimalsMap[s.asset.split(':')[0]] || 2}
               />
             ))}
           </div>

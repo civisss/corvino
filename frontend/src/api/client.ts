@@ -95,4 +95,15 @@ export async function fetchCurrentPrices(symbols: string[]): Promise<Record<stri
     return {}
   }
   return res.json()
+  return res.json()
+}
+
+export async function fetchConfig(): Promise<{ assets: Record<string, { decimals: number }>, scan_interval: number }> {
+  try {
+    const res = await fetch(`${API_BASE}/config`)
+    if (!res.ok) return { assets: {}, scan_interval: 300 }
+    return res.json()
+  } catch (e) {
+    return { assets: {}, scan_interval: 300 }
+  }
 }

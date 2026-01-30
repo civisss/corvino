@@ -80,7 +80,20 @@ class SignalGenerator:
             sentiment = self.news_classifier.classify_batch(news_items)
             news_sentiment_str = f"{sentiment.sentiment.value} (impact: {sentiment.impact_score:.2f}). {sentiment.summary}"
 
-        # 6. AI analysis (Perplexity)
+        # 6. AI analysis (Perplexity) - with Risk Scenarios
+        # Compute hypothetical risk setups for both directions
+        sl_long, tp1_l, tp2_l, tp3_l, rr_long = self.risk.compute_dynamic_levels(
+            entry=metrics.get("close", 0), atr=atr, direction="LONG", supports=supports, resistances=resistances
+        )
+        sl_short, tp1_s, tp2_s, tp3_s, rr_short = self.risk.compute_dynamic_levels(
+            entry=metrics.get("close", 0), atr=atr, direction="SHORT", supports=supports, resistances=resistances
+        )
+        
+        scenarios = {
+            "LONG": {"sl": sl_long, "tps": [tp1_l, tp2_l, tp3_l], "rr": rr_long},
+            "SHORT": {"sl": sl_short, "tps": [tp1_s, tp2_s, tp3_s], "rr": rr_short},
+        }
+
         ai_result = self.ai.analyze(
             asset=asset,
             timeframe=timeframe,
@@ -89,8 +102,9 @@ class SignalGenerator:
             supports=supports,
             resistances=resistances,
             news_sentiment=news_sentiment_str,
+            risk_scenarios=scenarios
         )
-
+        
         # 6b. ML local model (if trained): combine with AI for sharper signal
         direction = ai_result.direction
         confidence = ai_result.confidence_score
@@ -112,12 +126,21 @@ class SignalGenerator:
         if not entry or entry <= 0:
             return None
 
-        # 7. Risk levels (dynamic SL/TP)
-        stop_loss, tp1, tp2, tp3, risk_reward = self.risk.compute_levels(
-            entry=entry,
-            atr=atr,
-            direction=direction,
-        )
+        # 7. Finalize Risk levels based on chosen direction
+        # We use the pre-calculated scenarios or fallback to default method if needed
+        chosen_scenario = scenarios.get(direction)
+        if chosen_scenario:
+            stop_loss = chosen_scenario["sl"]
+            tps = chosen_scenario["tps"]
+            take_profit_1 = tps[0]
+            take_profit_2 = tps[1]
+            take_profit_3 = tps[2]
+            risk_reward = chosen_scenario["rr"]
+        else:
+             # Fallback (should not happen if direction is valid)
+             stop_loss, take_profit_1, take_profit_2, take_profit_3, risk_reward = self.risk.compute_levels(
+                entry=entry, atr=atr, direction=direction
+            )
         position_size_pct = self.risk.position_size_pct(entry, stop_loss, risk_pct=1.0)
 
         invalidation = "; ".join(ai_result.explanation.invalidation_conditions or [])

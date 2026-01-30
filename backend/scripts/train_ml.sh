@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Addestra il modello ML locale su dati Binance Futures (BTC/ETH/SOL, 1h/2h/4h/1d).
+# Addestra il modello ML locale sui dati definiti in supported_assets.txt (e timeframes).
 # Richiede backend in esecuzione su localhost:8000 (o imposta API_BASE).
 #
 # Uso:

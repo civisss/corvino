@@ -36,6 +36,12 @@ def _save_signal(raw, db: Session) -> Signal:
     return s
 
 
+
+from threading import Lock
+
+# Global lock to prevent concurrent generation runs (e.g. double-trigger from frontend)
+GENERATION_LOCK = Lock()
+
 @router.post("/generate")
 def generate_signals(
     background_tasks: BackgroundTasks,
@@ -46,19 +52,36 @@ def generate_signals(
     Skips assets that already have an active signal.
     Returns count of newly created signals.
     """
-    # 1. Get currently active assets to skip
-    active_signals = db.query(Signal).filter(Signal.status == "active").all()
-    # Normalize asset names if needed, but usually they match settings (e.g. BTC/USDT)
-    active_assets = {s.asset for s in active_signals}
-
-    gen = SignalGenerator()
-    raw_list = gen.generate_all(use_news=True, exclude_assets=list(active_assets))
+    # 0. Acquire lock or skip
+    if not GENERATION_LOCK.acquire(blocking=False):
+        return {"created": 0, "status": "skipped", "reason": "Generation already in progress"}
     
-    created = []
-    for raw in raw_list:
-        s = _save_signal(raw, db)
-        created.append(s.id)
-    return {"created": len(created), "signal_ids": created, "skipped": list(active_assets)}
+    try:
+        # 1. Get currently active assets to skip
+        active_signals = db.query(Signal).filter(Signal.status == "active").all()
+        # Normalize asset names if needed, but usually they match settings (e.g. BTC/USDT)
+        active_assets = {s.asset for s in active_signals}
+    
+        gen = SignalGenerator()
+        raw_list = gen.generate_all(use_news=True, exclude_assets=list(active_assets))
+        
+        created = []
+        for raw in raw_list:
+            # Double-check before saving: ensures we don't create duplicates even if race condition occurred
+            # or if multiple signals for same asset were generated in this run (aggregation should prevent this, but safety first)
+            existing = db.query(Signal).filter(
+                Signal.asset == raw.asset, 
+                Signal.status == "active"
+            ).first()
+            if existing:
+                continue
+
+            s = _save_signal(raw, db)
+            created.append(s.id)
+        
+        return {"created": len(created), "signal_ids": created, "skipped": list(active_assets)}
+    finally:
+        GENERATION_LOCK.release()
 
 
 @router.post("/generate/{asset}/{timeframe}")

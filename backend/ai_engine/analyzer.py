@@ -41,6 +41,7 @@ class AIAnalyzer:
         supports: List[float],
         resistances: List[float],
         news_sentiment: Optional[str] = None,
+        risk_scenarios: Optional[Dict[str, Any]] = None,
     ) -> AIAnalysisResult:
         """
         Run LLM analysis and return confidence + structured explanation.
@@ -48,7 +49,7 @@ class AIAnalyzer:
         """
         if self.client:
             return self._llm_analyze(
-                asset, timeframe, indicators, patterns, supports, resistances, news_sentiment
+                asset, timeframe, indicators, patterns, supports, resistances, news_sentiment, risk_scenarios
             )
         return self._fallback_analyze(
             asset, timeframe, indicators, patterns, supports, resistances
@@ -63,7 +64,18 @@ class AIAnalyzer:
         supports: List[float],
         resistances: List[float],
         news_sentiment: Optional[str],
+        risk_scenarios: Optional[Dict[str, Any]] = None,
     ) -> str:
+        scenarios_text = ""
+        if risk_scenarios:
+            long_s = risk_scenarios.get("LONG", {})
+            short_s = risk_scenarios.get("SHORT", {})
+            scenarios_text = f"""
+Proposed Risk Setups (based on Support/Resistance):
+LONG:  SL {long_s.get('sl', 'N/A'):.2f} | TPs {long_s.get('tps', [])}
+SHORT: SL {short_s.get('sl', 'N/A'):.2f} | TPs {short_s.get('tps', [])}
+Instructions: Review these levels. If you choose a direction, check if the proposed SL is safe regarding invalidation.
+"""
         return f"""You are a quantitative crypto trading analyst. Based ONLY on the following data, output a trading signal analysis.
 
 Asset: {asset}
@@ -78,6 +90,7 @@ Detected chart patterns:
 Support levels (nearest): {supports[:5]}
 Resistance levels (nearest): {resistances[:5]}
 {f'News/macro sentiment: {news_sentiment}' if news_sentiment else ''}
+{scenarios_text}
 
 Instructions:
 1. Decide direction: LONG or SHORT (or NEUTRAL if unclear).
@@ -106,10 +119,10 @@ Respond with a single JSON object, no markdown, with this exact structure:
         patterns: List[Dict[str, Any]],
         supports: List[float],
         resistances: List[float],
-        news_sentiment: Optional[str] = None,
+        risk_scenarios: Optional[Dict[str, Any]] = None,
     ) -> AIAnalysisResult:
         prompt = self._build_prompt(
-            asset, timeframe, indicators, patterns, supports, resistances, news_sentiment
+            asset, timeframe, indicators, patterns, supports, resistances, news_sentiment, risk_scenarios
         )
         try:
             resp = self.client.chat.completions.create(

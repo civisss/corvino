@@ -79,3 +79,96 @@ class RiskCalculator:
         # size such that (size * risk_per_unit / entry) = risk_pct/100
         size_pct = (risk_pct / 100.0) * entry / risk_per_unit
         return min(100.0, max(0.5, round(size_pct, 1)))
+
+    def compute_dynamic_levels(
+        self,
+        entry: float,
+        atr: float,
+        direction: str,
+        supports: list[float],
+        resistances: list[float],
+    ) -> Tuple[float, float, float, float, float]:
+        """
+        Compute SL/TP based on S/R levels.
+        - SL: placed beyond nearest Support (Long) or Resistance (Short).
+        - TP: placed at next Resistance (Long) or Support (Short) levels.
+        - Fallback: ATR-based if no relevant S/R found.
+        """
+        if atr <= 0:
+            atr = entry * 0.02
+
+        # Min distance to avoid noise (0.5 ATR)
+        min_dist = 0.5 * atr
+
+        sl = 0.0
+        tps = []
+
+        if direction.upper() == "LONG":
+            # SL: Find highest support BELOW entry (minus buffer)
+            # supports are typically sorted? Let's assume passed list can be any order.
+            # Filter supports < entry
+            valid_supports = sorted([s for s in supports if s < entry], reverse=True) # Descending (nearest first)
+            
+            # Find first support at least min_dist away
+            chosen_support = None
+            for s in valid_supports:
+                if (entry - s) >= min_dist:
+                    chosen_support = s
+                    break
+            
+            if chosen_support:
+                sl = chosen_support - (0.2 * atr) # Small buffer below support
+            else:
+                sl = entry - (self.atr_mult_sl * atr) # Fallback
+
+            # TP: Find resistances ABOVE entry
+            valid_resistances = sorted([r for r in resistances if r > entry]) # Ascending (nearest first)
+            
+            for r in valid_resistances:
+                if (r - entry) >= min_dist:
+                    tps.append(r)
+                if len(tps) >= 3:
+                    break
+            
+            # Fill missing TPs with ATR logic relative to Entry
+            while len(tps) < 3:
+                last_tp = tps[-1] if tps else entry
+                # Add 1.5 ATR spacing for subsequent TPs if S/R exhausted
+                tps.append(last_tp + (1.5 * atr))
+
+        else: # SHORT
+            # SL: Find lowest resistance ABOVE entry (plus buffer)
+            valid_resistances = sorted([r for r in resistances if r > entry]) # Ascending (nearest first)
+            
+            chosen_resistance = None
+            for r in valid_resistances:
+                if (r - entry) >= min_dist:
+                    chosen_resistance = r
+                    break
+            
+            if chosen_resistance:
+                sl = chosen_resistance + (0.2 * atr) # Small buffer above resistance
+            else:
+                sl = entry + (self.atr_mult_sl * atr) # Fallback
+
+            # TP: Find supports BELOW entry
+            valid_supports = sorted([s for s in supports if s < entry], reverse=True) # Descending (nearest first)
+            
+            for s in valid_supports:
+                if (entry - s) >= min_dist:
+                    tps.append(s)
+                if len(tps) >= 3:
+                    break
+            
+            while len(tps) < 3:
+                last_tp = tps[-1] if tps else entry
+                tps.append(last_tp - (1.5 * atr))
+
+        # Risk/Reward Calc
+        risk = abs(entry - sl)
+        # Average reward
+        tp1, tp2, tp3 = tps[0], tps[1], tps[2]
+        reward_avg = (abs(entry - tp1) + abs(entry - tp2) + abs(entry - tp3)) / 3
+        risk_reward = reward_avg / risk if risk > 0 else 0.0
+
+        return sl, tp1, tp2, tp3, risk_reward

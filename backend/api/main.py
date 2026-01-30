@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from models.database import init_db
-from api.routes import signals, health, generate, ml_train, prices
+from api.routes import signals, health, generate, ml_train, prices, config_endpoint
 
 
 @asynccontextmanager
@@ -39,6 +39,7 @@ app.include_router(signals.router, prefix="/api/signals")
 app.include_router(generate.router, prefix="/api")
 app.include_router(ml_train.router, prefix="/api")
 app.include_router(prices.router, prefix="/api")
+app.include_router(config_endpoint.router, prefix="/api")
 
 
 @app.get("/")

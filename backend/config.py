@@ -24,8 +24,9 @@ class Settings(BaseSettings):
     news_api_key: str = ""
 
     # Supported assets (Futures perpetual Binance USD-M) and timeframes
-    # Supported assets (Futures perpetual Binance USD-M) and timeframes
-    supported_assets: list[str] = ["BTC/USDT:USDT", "ETH/USDT:USDT", "SOL/USDT:USDT"]
+    # List of strings "ASSET" or "ASSET,DECIMALS"
+    supported_assets: list[str] = [] # Loaded from supported_assets.txt
+    asset_decimals: dict[str, int] = {} # Map symbol -> decimals
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -34,7 +35,17 @@ class Settings(BaseSettings):
             with open("supported_assets.txt", "r") as f:
                 lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
                 if lines:
-                    self.supported_assets = lines
+                    self.supported_assets = []
+                    self.asset_decimals = {}
+                    for line in lines:
+                        parts = line.split(',')
+                        raw_symbol = parts[0].strip()
+                        self.supported_assets.append(raw_symbol)
+                        if len(parts) > 1:
+                            try:
+                                self.asset_decimals[raw_symbol] = int(parts[1].strip())
+                            except ValueError:
+                                pass
         except FileNotFoundError:
             pass  # Keep defaults
 

@@ -5,10 +5,11 @@ import './SignalCard.css'
 interface SignalCardProps {
   signal: SignalResponse
   currentPrice?: number
+  decimals?: number
   onClose?: (id: string) => void
 }
 
-export default function SignalCard({ signal, currentPrice }: SignalCardProps) {
+export default function SignalCard({ signal, currentPrice, decimals = 2 }: SignalCardProps) {
   const isLong = signal.direction.toUpperCase() === 'LONG'
   const assetShort = signal.asset.replace('/USDT:USDT', '').replace('/USDT', '')
 
@@ -41,7 +42,7 @@ export default function SignalCard({ signal, currentPrice }: SignalCardProps) {
             {currentPrice != null ? (
               <div className="level">
                 <span className="label">Current</span>
-                <span className="value mono price-current">{currentPrice.toFixed(2)}</span>
+                <span className="value mono price-current">{currentPrice.toFixed(decimals)}</span>
               </div>
             ) : (
               <div className="level">
@@ -51,28 +52,28 @@ export default function SignalCard({ signal, currentPrice }: SignalCardProps) {
             )}
             <div className="level">
               <span className="label">Entry</span>
-              <span className="value mono">{signal.entry_price.toFixed(2)}</span>
+              <span className="value mono">{signal.entry_price.toFixed(decimals)}</span>
             </div>
             <div className={`level ${checkHit(signal.stop_loss, 'sl')}`}>
               <span className="label">SL</span>
-              <span className={`value mono danger`}>{signal.stop_loss.toFixed(2)}</span>
+              <span className={`value mono danger`}>{signal.stop_loss.toFixed(decimals)}</span>
             </div>
           </div>
           <div className="level-row tp-levels">
             <div className={`level ${checkHit(signal.take_profit_1, 'tp')}`}>
               <span className="label">TP1</span>
-              <span className={`value mono success`}>{signal.take_profit_1.toFixed(2)}</span>
+              <span className={`value mono success`}>{signal.take_profit_1.toFixed(decimals)}</span>
             </div>
             {signal.take_profit_2 != null && (
               <div className={`level ${checkHit(signal.take_profit_2, 'tp')}`}>
                 <span className="label">TP2</span>
-                <span className={`value mono success`}>{signal.take_profit_2.toFixed(2)}</span>
+                <span className={`value mono success`}>{signal.take_profit_2.toFixed(decimals)}</span>
               </div>
             )}
             {signal.take_profit_3 != null && (
               <div className={`level ${checkHit(signal.take_profit_3, 'tp')}`}>
                 <span className="label">TP3</span>
-                <span className={`value mono success`}>{signal.take_profit_3.toFixed(2)}</span>
+                <span className={`value mono success`}>{signal.take_profit_3.toFixed(decimals)}</span>
               </div>
             )}
           </div>
@@ -96,7 +97,7 @@ export default function SignalCard({ signal, currentPrice }: SignalCardProps) {
         )}
         {signal.exit_price != null && (
           <div className="signal-exit">
-            <span>Exit: {signal.exit_price.toFixed(2)}</span>
+            <span>Exit: {signal.exit_price.toFixed(decimals)}</span>
             {signal.pnl_pct != null && (
               <span className={signal.pnl_pct >= 0 ? 'success' : 'danger'}>
                 PnL {signal.pnl_pct >= 0 ? '+' : ''}{signal.pnl_pct.toFixed(2)}%
