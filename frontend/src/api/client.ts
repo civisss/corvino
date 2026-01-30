@@ -1,0 +1,98 @@
+const API_BASE = '/api'
+
+export interface SignalResponse {
+  id: string
+  asset: string
+  timeframe: string
+  direction: string
+  entry_price: number
+  stop_loss: number
+  take_profit_1: number
+  take_profit_2?: number
+  take_profit_3?: number
+  position_size_pct?: number
+  risk_reward?: number
+  invalidation_conditions?: string
+  confidence_score: number
+  explanation?: {
+    summary?: string
+    technical_reasoning?: string[]
+    pattern_reasoning?: string[]
+    risk_factors?: string[]
+    invalidation_conditions?: string[]
+  }
+  status: string
+  exit_price?: number
+  pnl_pct?: number
+  closed_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface StatsOverview {
+  total_closed: number
+  wins: number
+  losses: number
+  win_rate_pct: number
+  avg_pnl_pct: number
+  total_pnl_pct: number
+}
+
+export async function fetchSignals(params?: {
+  status?: string
+  asset?: string
+  timeframe?: string
+  limit?: number
+}): Promise<SignalResponse[]> {
+  const sp = new URLSearchParams()
+  if (params?.status) sp.set('status', params.status)
+  if (params?.asset) sp.set('asset', params.asset)
+  if (params?.timeframe) sp.set('timeframe', params.timeframe)
+  if (params?.limit) sp.set('limit', String(params.limit))
+  const q = sp.toString()
+  const res = await fetch(`${API_BASE}/signals${q ? `?${q}` : ''}`)
+  if (!res.ok) throw new Error('Failed to fetch signals')
+  return res.json()
+}
+
+export async function fetchActiveSignals(): Promise<SignalResponse[]> {
+  const res = await fetch(`${API_BASE}/signals/active`)
+  if (!res.ok) throw new Error('Failed to fetch active signals')
+  return res.json()
+}
+
+export async function fetchClosedSignals(limit = 100): Promise<SignalResponse[]> {
+  const res = await fetch(`${API_BASE}/signals/closed?limit=${limit}`)
+  if (!res.ok) throw new Error('Failed to fetch closed signals')
+  return res.json()
+}
+
+export async function fetchSignal(id: string): Promise<SignalResponse> {
+  const res = await fetch(`${API_BASE}/signals/${id}`)
+  if (!res.ok) throw new Error('Signal not found')
+  return res.json()
+}
+
+export async function fetchStatsOverview(): Promise<StatsOverview> {
+  const res = await fetch(`${API_BASE}/signals/stats/overview`)
+  if (!res.ok) throw new Error('Failed to fetch stats')
+  return res.json()
+}
+
+export async function triggerGenerate(): Promise<{ created: number; signal_ids: string[] }> {
+  const res = await fetch(`${API_BASE}/generate`, { method: 'POST' })
+  if (!res.ok) throw new Error('Generate failed')
+  return res.json()
+}
+
+export async function fetchCurrentPrices(symbols: string[]): Promise<Record<string, number>> {
+  if (!symbols.length) return {}
+  const q = symbols.join(',')
+  const res = await fetch(`${API_BASE}/prices?symbols=${encodeURIComponent(q)}`)
+  if (!res.ok) {
+    // Don't throw, just return empty so polling continues
+    console.error('Failed to fetch prices')
+    return {}
+  }
+  return res.json()
+}

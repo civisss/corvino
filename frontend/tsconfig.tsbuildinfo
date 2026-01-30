@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/api/client.ts","./src/components/signalcard.tsx","./src/components/signalchart.tsx","./src/pages/dashboard.tsx","./src/pages/pnl.tsx","./src/pages/signalsactive.tsx","./src/pages/signalsclosed.tsx","./src/pages/signalshistory.tsx"],"version":"5.9.3"}

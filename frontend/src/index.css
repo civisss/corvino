@@ -1,0 +1,49 @@
+:root {
+  --primary: #00eaff;
+  --primary-dim: #00bcd4;
+  --bg: #000000;
+  --bg-card: #0a0a0a;
+  --border: #1a1a1a;
+  --text: #e5e5e5;
+  --text-muted: #737373;
+  --success: #00ff88;
+  --danger: #ff3333;
+  --warning: #ffcc00;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}

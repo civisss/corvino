@@ -1,0 +1,41 @@
+.pnl-stats {
+  margin-bottom: 2rem;
+}
+
+.pnl-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.pnl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.pnl-table th,
+.pnl-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.pnl-table th {
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.pnl-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pnl-table tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.pnl-table .success { color: var(--success); }
+.pnl-table .danger { color: var(--danger); }
