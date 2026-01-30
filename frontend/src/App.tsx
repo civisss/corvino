@@ -14,9 +14,9 @@ function App() {
           <div className="nav-brand">Corvino</div>
           <div className="nav-links">
             <NavLink to="/" end>Dashboard</NavLink>
-            <NavLink to="/signals/active">Attivi</NavLink>
-            <NavLink to="/signals/closed">Chiusi</NavLink>
-            <NavLink to="/signals/history">Storico</NavLink>
+            <NavLink to="/signals/active">Active</NavLink>
+            <NavLink to="/signals/closed">Closed</NavLink>
+            <NavLink to="/signals/history">History</NavLink>
             <NavLink to="/pnl">P&L</NavLink>
           </div>
         </nav>

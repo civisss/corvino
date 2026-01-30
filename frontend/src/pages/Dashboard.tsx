@@ -38,7 +38,7 @@ export default function Dashboard() {
     }
 
     updatePrices() // Immediate
-    const timer = setInterval(updatePrices, 10000) // Every 10s
+    const timer = setInterval(updatePrices, 5000) // Every 5s
     return () => clearInterval(timer)
   }, [active])
 
@@ -88,7 +88,7 @@ export default function Dashboard() {
     return (
       <div className="page">
         <h1>Dashboard</h1>
-        <p className="muted">Caricamento...</p>
+        <p className="muted">Loading...</p>
       </div>
     )
   }
@@ -104,7 +104,7 @@ export default function Dashboard() {
             onClick={handleGenerate}
             disabled={generating}
           >
-            {generating ? 'Generazione...' : 'Scan Manuale'}
+            {generating ? 'Generating...' : 'Manual Scan'}
           </button>
         </div>
       </header>
@@ -113,7 +113,7 @@ export default function Dashboard() {
         <section className="stats-grid">
           <div className="stat-card">
             <span className="stat-value">{stats.total_closed}</span>
-            <span className="stat-label">Segnali chiusi</span>
+            <span className="stat-label">Closed Signals</span>
           </div>
           <div className="stat-card">
             <span className="stat-value">{stats.win_rate_pct}%</span>
@@ -123,26 +123,26 @@ export default function Dashboard() {
             <span className={`stat-value ${(stats.avg_pnl_pct ?? 0) >= 0 ? 'success' : 'danger'}`}>
               {(stats.avg_pnl_pct ?? 0) >= 0 ? '+' : ''}{stats.avg_pnl_pct ?? 0}%
             </span>
-            <span className="stat-label">PnL medio</span>
+            <span className="stat-label">Avg PnL</span>
           </div>
           <div className="stat-card">
             <span className={`stat-value ${(stats.total_pnl_pct ?? 0) >= 0 ? 'success' : 'danger'}`}>
               {(stats.total_pnl_pct ?? 0) >= 0 ? '+' : ''}{stats.total_pnl_pct ?? 0}%
             </span>
-            <span className="stat-label">PnL totale</span>
+            <span className="stat-label">Total PnL</span>
           </div>
         </section>
       )}
       <section className="section">
-        <h2>Segnali attivi</h2>
+        <h2>Active Signals</h2>
         {active.length === 0 ? (
           generating ? (
             <div className="loader-container">
               <div className="hourglass"></div>
-              <p className="muted">Analisi mercati in corso...</p>
+              <p className="muted">Analyzing markets...</p>
             </div>
           ) : (
-            <p className="muted">Nessun segnale attivo. Clicca &quot;Genera segnali&quot; o attendi lo scan automatico.</p>
+            <p className="muted">No active signals. Click &quot;Manual Scan&quot; or wait for auto-scan.</p>
           )
         ) : (
           <div className="signal-grid">

@@ -96,7 +96,7 @@ export default function SignalCard({ signal, currentPrice }: SignalCardProps) {
         )}
         {signal.exit_price != null && (
           <div className="signal-exit">
-            <span>Uscita: {signal.exit_price.toFixed(2)}</span>
+            <span>Exit: {signal.exit_price.toFixed(2)}</span>
             {signal.pnl_pct != null && (
               <span className={signal.pnl_pct >= 0 ? 'success' : 'danger'}>
                 PnL {signal.pnl_pct >= 0 ? '+' : ''}{signal.pnl_pct.toFixed(2)}%

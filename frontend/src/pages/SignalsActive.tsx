@@ -31,18 +31,18 @@ export default function SignalsActive() {
   if (loading && !signals.length) {
     return (
       <div className="page">
-        <h1>Segnali attivi</h1>
-        <p className="muted">Caricamento...</p>
+        <h1>Active Signals</h1>
+        <p className="muted">Loading...</p>
       </div>
     )
   }
 
   return (
     <div className="page dashboard">
-      <h1>Segnali attivi</h1>
+      <h1>Active Signals</h1>
       {error && <div className="alert alert-error">{error}</div>}
       {signals.length === 0 ? (
-        <p className="muted">Nessun segnale attivo.</p>
+        <p className="muted">No active signals.</p>
       ) : (
         <div className="signal-grid">
           {signals.map((s) => (

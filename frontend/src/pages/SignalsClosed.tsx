@@ -26,18 +26,18 @@ export default function SignalsClosed() {
   if (loading && !signals.length) {
     return (
       <div className="page">
-        <h1>Segnali chiusi</h1>
-        <p className="muted">Caricamento...</p>
+        <h1>Closed Signals</h1>
+        <p className="muted">Loading...</p>
       </div>
     )
   }
 
   return (
     <div className="page dashboard">
-      <h1>Segnali chiusi</h1>
+      <h1>Closed Signals</h1>
       {error && <div className="alert alert-error">{error}</div>}
       {signals.length === 0 ? (
-        <p className="muted">Nessun segnale chiuso.</p>
+        <p className="muted">No closed signals.</p>
       ) : (
         <div className="signal-grid">
           {signals.map((s) => (
