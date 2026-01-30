@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchActiveSignals, fetchStatsOverview, triggerGenerate, fetchCurrentPrices, fetchConfig } from '../api/client'
+import { fetchActiveSignals, fetchStatsOverview, triggerGenerate, fetchCurrentPrices, fetchConfig, closeSignal } from '../api/client'
 import SignalCard from '../components/SignalCard'
 import './Dashboard.css'
 
@@ -27,6 +27,48 @@ export default function Dashboard() {
     }
   }
 
+  // Check if SL or TP is hit and auto-close
+  const checkAndCloseSignals = async (signalList: any[], priceMap: Record<string, number>) => {
+    for (const s of signalList) {
+      const price = priceMap[s.asset] || priceMap[s.asset.split(':')[0]]
+      if (!price) continue
+
+      const isLong = s.direction.toUpperCase() === 'LONG'
+      let shouldClose = false
+      let exitPrice = price
+
+      // Check SL hit
+      if (isLong && price <= s.stop_loss) {
+        shouldClose = true
+        exitPrice = s.stop_loss
+      } else if (!isLong && price >= s.stop_loss) {
+        shouldClose = true
+        exitPrice = s.stop_loss
+      }
+
+      // Check TP3 hit (full take profit)
+      if (s.take_profit_3) {
+        if (isLong && price >= s.take_profit_3) {
+          shouldClose = true
+          exitPrice = s.take_profit_3
+        } else if (!isLong && price <= s.take_profit_3) {
+          shouldClose = true
+          exitPrice = s.take_profit_3
+        }
+      }
+
+      if (shouldClose) {
+        try {
+          console.log(`Auto-closing signal ${s.id} at ${exitPrice}`)
+          await closeSignal(s.id, exitPrice)
+          load() // Refresh signals
+        } catch (err) {
+          console.error('Failed to auto-close signal:', err)
+        }
+      }
+    }
+  }
+
   // Poll prices for active signals
   useEffect(() => {
     if (!active.length) return
@@ -36,6 +78,9 @@ export default function Dashboard() {
       if (!assets.length) return
       const p = await fetchCurrentPrices(assets)
       setPrices(prev => ({ ...prev, ...p }))
+
+      // Check for auto-close
+      checkAndCloseSignals(active, { ...prices, ...p })
     }
 
     updatePrices() // Immediate
@@ -92,7 +137,7 @@ export default function Dashboard() {
     try {
       await triggerGenerate()
       await load()
-      setTimeLeft(300) // Reset timer on manual or auto trigger
+      setTimeLeft(600) // Reset timer on manual or auto trigger
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Generate failed')
     } finally {

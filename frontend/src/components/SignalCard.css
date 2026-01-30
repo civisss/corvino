@@ -151,17 +151,35 @@
   color: var(--danger);
 }
 
-/* Highlight styles */
+/* Highlight styles - Badge-like when level is hit */
 .level.hit-success {
-  background: rgba(34, 197, 94, 0.2);
-  border-radius: 4px;
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+  padding: 0.5rem 0.75rem;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
+}
+
+.level.hit-success .value {
+  color: #22c55e !important;
+}
+
+.level.hit-success .label {
+  color: #22c55e;
 }
 
 .level.hit-danger {
-  background: rgba(239, 68, 68, 0.2);
-  border-radius: 4px;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  padding: 0.5rem 0.75rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+}
+
+.level.hit-danger .value {
+  color: #ef4444 !important;
+}
+
+.level.hit-danger .label {
+  color: #ef4444;
 }
 
 .price-current {

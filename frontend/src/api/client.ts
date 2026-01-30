@@ -101,9 +101,24 @@ export async function fetchCurrentPrices(symbols: string[]): Promise<Record<stri
 export async function fetchConfig(): Promise<{ assets: Record<string, { decimals: number }>, scan_interval: number }> {
   try {
     const res = await fetch(`${API_BASE}/config`)
-    if (!res.ok) return { assets: {}, scan_interval: 300 }
+    if (!res.ok) return { assets: {}, scan_interval: 600 }
     return res.json()
   } catch (e) {
-    return { assets: {}, scan_interval: 300 }
+    return { assets: {}, scan_interval: 600 }
   }
 }
+
+export async function closeSignal(signalId: string, exitPrice: number): Promise<SignalResponse> {
+  const res = await fetch(`${API_BASE}/signals/${signalId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      status: 'closed',
+      exit_price: exitPrice,
+      closed_at: new Date().toISOString()
+    })
+  })
+  if (!res.ok) throw new Error('Failed to close signal')
+  return res.json()
+}
+
