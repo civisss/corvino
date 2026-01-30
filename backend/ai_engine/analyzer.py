@@ -71,12 +71,17 @@ class AIAnalyzer:
             long_s = risk_scenarios.get("LONG", {})
             short_s = risk_scenarios.get("SHORT", {})
             scenarios_text = f"""
-Proposed Risk Setups (based on Support/Resistance):
-LONG:  SL {long_s.get('sl', 'N/A'):.2f} | TPs {long_s.get('tps', [])}
-SHORT: SL {short_s.get('sl', 'N/A'):.2f} | TPs {short_s.get('tps', [])}
-Instructions: Review these levels. If you choose a direction, check if the proposed SL is safe regarding invalidation.
+Proposed Risk Setups (based on Support/Resistance/Order Blocks/FVG):
+LONG:  SL {long_s.get('sl', 0):.2f} | TPs {[round(t, 2) for t in long_s.get('tps', [])]} | R:R {long_s.get('rr', 0):.2f}
+SHORT: SL {short_s.get('sl', 0):.2f} | TPs {[round(t, 2) for t in short_s.get('tps', [])]} | R:R {short_s.get('rr', 0):.2f}
+
+IMPORTANT RISK VALIDATION:
+- Only recommend a direction if R:R >= 1.5. If both scenarios have R:R < 1.5, output NEUTRAL.
+- Verify that the SL is placed at a logical invalidation level (below key support for LONG, above key resistance for SHORT).
+- If the proposed SL seems too tight or too wide, mention it in risk_factors.
 """
-        return f"""You are a quantitative crypto trading analyst. Based ONLY on the following data, output a trading signal analysis.
+        return f"""You are a quantitative crypto trading analyst specializing in ICT (Inner Circle Trader) concepts. 
+Based ONLY on the following data, output a trading signal analysis.
 
 Asset: {asset}
 Timeframe: {timeframe}
@@ -84,7 +89,7 @@ Timeframe: {timeframe}
 Technical indicators (latest):
 {json.dumps(indicators, indent=2)}
 
-Detected chart patterns:
+Detected chart patterns (including Order Blocks and FVG):
 {json.dumps(patterns, indent=2)}
 
 Support levels (nearest): {supports[:5]}
@@ -93,9 +98,10 @@ Resistance levels (nearest): {resistances[:5]}
 {scenarios_text}
 
 Instructions:
-1. Decide direction: LONG or SHORT (or NEUTRAL if unclear).
-2. Assign a confidence score between 0 and 100.
-3. Provide a structured explanation with: summary, technical_reasoning (list), pattern_reasoning (list), risk_factors (list), invalidation_conditions (list).
+1. Decide direction: LONG or SHORT (or NEUTRAL if conditions are unclear OR if R:R < 1.5 for both directions).
+2. Assign a confidence score between 0 and 100. Consider R:R ratio in your confidence assessment.
+3. Validate the proposed SL/TP levels - mention any concerns in risk_factors.
+4. Provide a structured explanation with: summary, technical_reasoning (list), pattern_reasoning (list), risk_factors (list), invalidation_conditions (list).
 
 Respond with a single JSON object, no markdown, with this exact structure:
 {{

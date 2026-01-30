@@ -13,6 +13,13 @@ export default function SignalCard({ signal, currentPrice, decimals = 2 }: Signa
   const isLong = signal.direction.toUpperCase() === 'LONG'
   const assetShort = signal.asset.replace('/USDT:USDT', '').replace('/USDT', '')
 
+  // Live PnL calculation
+  const livePnl = currentPrice != null && signal.entry_price
+    ? isLong
+      ? ((currentPrice - signal.entry_price) / signal.entry_price) * 100
+      : ((signal.entry_price - currentPrice) / signal.entry_price) * 100
+    : null
+
   // Highlight logic
   const checkHit = (level: number, type: 'sl' | 'tp') => {
     if (!currentPrice) return ''
@@ -35,6 +42,11 @@ export default function SignalCard({ signal, currentPrice, decimals = 2 }: Signa
           {signal.direction}
         </span>
         <span className="signal-status">{signal.status}</span>
+        {livePnl != null && (
+          <span className={`signal-live-pnl mono ${livePnl >= 0 ? 'success' : 'danger'}`}>
+            {livePnl >= 0 ? '+' : ''}{livePnl.toFixed(2)}%
+          </span>
+        )}
       </header>
       <div className="signal-card-body">
         <div className="signal-levels-container">

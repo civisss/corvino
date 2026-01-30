@@ -20,5 +20,5 @@ def get_config():
         
     return {
         "assets": assets_config,
-        "scan_interval": 300 # 5 minutes
+        "scan_interval": 600 # 10 minutes
     }

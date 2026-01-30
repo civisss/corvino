@@ -71,8 +71,25 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #666;
-  margin-left: auto;
   font-weight: 600;
+}
+
+.signal-live-pnl {
+  margin-left: auto;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+}
+
+.signal-live-pnl.success {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.signal-live-pnl.danger {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
 }
 
 /* Body takes remaining space to push footer down */

@@ -20,6 +20,10 @@ class PatternType(str, Enum):
     CHANNEL_UP = "channel_up"
     CHANNEL_DOWN = "channel_down"
     RANGE = "range"
+    ORDER_BLOCK_BULLISH = "order_block_bullish"
+    ORDER_BLOCK_BEARISH = "order_block_bearish"
+    FVG_BULLISH = "fvg_bullish"
+    FVG_BEARISH = "fvg_bearish"
 
 
 class PatternResult(BaseModel):

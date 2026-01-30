@@ -11,7 +11,7 @@
 - **AI-Powered Explanations**: Uses **Perplexity API** to analyze market context and explain the "Why" behind every signal.
 - **Machine Learning**: Supports local training (LightGBM/XGBoost) to validate signals and improve confidence scores.
 - **Risk Management**: Automatically calculates Entry, Stop Loss, and 3 Take Profit levels based on volatility (ATR).
-- **Auto-Scan Dashboard**: The frontend automatically scans for new signals every 5 minutes.
+- **Auto-Scan Dashboard**: The frontend automatically scans for new signals every 10 minutes.
 
 ---
 
@@ -92,7 +92,7 @@ To modify the list of assets scanned by the system, edit the file `backend/suppo
 
 ## 📊 Dashboard Features
 
-- **Auto-Scan**: A countdown timer triggers a new market scan every 5 minutes.
+- **Auto-Scan**: A countdown timer triggers a new market scan every 10 minutes.
 - **Manual Scan**: "Scan Manuale" button to force an immediate update.
 - **Signal Cards**: Displays active signals with Entry, SL, TP levels, and AI reasoning.
 - **Aggregated View**: You will only see one card per asset, representing the best signal confirmed by multiple timeframes.

@@ -81,12 +81,29 @@ class SignalGenerator:
             news_sentiment_str = f"{sentiment.sentiment.value} (impact: {sentiment.impact_score:.2f}). {sentiment.summary}"
 
         # 6. AI analysis (Perplexity) - with Risk Scenarios
+        # Extract Order Blocks and FVGs from patterns for risk calculation
+        order_blocks = []
+        fvg_zones = []
+        for p in pattern_results:
+            if p.pattern_type == "order_block_bullish" and p.metadata:
+                order_blocks.append({"type": "bullish", "low": p.metadata.get("ob_low"), "high": p.metadata.get("ob_high")})
+            elif p.pattern_type == "order_block_bearish" and p.metadata:
+                order_blocks.append({"type": "bearish", "low": p.metadata.get("ob_low"), "high": p.metadata.get("ob_high")})
+            elif p.pattern_type == "fvg_bullish" and p.metadata:
+                fvg_zones.append({"type": "bullish", "low": p.metadata.get("fvg_low"), "high": p.metadata.get("fvg_high")})
+            elif p.pattern_type == "fvg_bearish" and p.metadata:
+                fvg_zones.append({"type": "bearish", "low": p.metadata.get("fvg_low"), "high": p.metadata.get("fvg_high")})
+
         # Compute hypothetical risk setups for both directions
         sl_long, tp1_l, tp2_l, tp3_l, rr_long = self.risk.compute_dynamic_levels(
-            entry=metrics.get("close", 0), atr=atr, direction="LONG", supports=supports, resistances=resistances
+            entry=metrics.get("close", 0), atr=atr, direction="LONG", 
+            supports=supports, resistances=resistances,
+            order_blocks=order_blocks, fvg_zones=fvg_zones
         )
         sl_short, tp1_s, tp2_s, tp3_s, rr_short = self.risk.compute_dynamic_levels(
-            entry=metrics.get("close", 0), atr=atr, direction="SHORT", supports=supports, resistances=resistances
+            entry=metrics.get("close", 0), atr=atr, direction="SHORT", 
+            supports=supports, resistances=resistances,
+            order_blocks=order_blocks, fvg_zones=fvg_zones
         )
         
         scenarios = {

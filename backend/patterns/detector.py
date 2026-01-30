@@ -36,6 +36,10 @@ class PatternDetector:
         results.extend(self._channel(recent))
         # Range
         results.extend(self._range(recent))
+        # Order Blocks (ICT concept)
+        results.extend(self._order_blocks(recent))
+        # Fair Value Gaps (FVG)
+        results.extend(self._fvg(recent))
 
         return results
 
@@ -228,3 +232,104 @@ class PatternDetector:
                 )
             )
         return out
+
+    def _order_blocks(self, df: pd.DataFrame) -> List[PatternResult]:
+        """
+        Detect Order Blocks: last up/down candle before a strong move.
+        - Bullish OB: last bearish candle before a strong bullish move (demand zone).
+        - Bearish OB: last bullish candle before a strong bearish move (supply zone).
+        """
+        out = []
+        opens = df["open"].values
+        closes = df["close"].values
+        highs = df["high"].values
+        lows = df["low"].values
+        n = len(closes)
+        if n < 10:
+            return out
+
+        atr = np.mean(highs[-20:] - lows[-20:]) if n >= 20 else np.mean(highs - lows)
+        threshold = 1.5 * atr  # Strong move = 1.5x ATR
+
+        # Look for OBs in last 30 candles
+        for i in range(max(3, n - 30), n - 1):
+            # Bullish OB: bearish candle followed by strong bullish move
+            if closes[i] < opens[i]:  # Bearish candle
+                # Check if next candles show strong bullish move
+                if i + 2 < n:
+                    move = closes[i + 2] - closes[i]
+                    if move >= threshold:
+                        out.append(
+                            PatternResult(
+                                pattern_type=PatternType.ORDER_BLOCK_BULLISH.value,
+                                confidence=0.75,
+                                level_or_price=float(lows[i]),  # OB low = demand zone
+                                description=f"Bullish Order Block at {lows[i]:.2f}",
+                                metadata={"ob_high": float(highs[i]), "ob_low": float(lows[i])},
+                            )
+                        )
+                        break  # Only keep most recent
+
+            # Bearish OB: bullish candle followed by strong bearish move
+            if closes[i] > opens[i]:  # Bullish candle
+                if i + 2 < n:
+                    move = closes[i] - closes[i + 2]
+                    if move >= threshold:
+                        out.append(
+                            PatternResult(
+                                pattern_type=PatternType.ORDER_BLOCK_BEARISH.value,
+                                confidence=0.75,
+                                level_or_price=float(highs[i]),  # OB high = supply zone
+                                description=f"Bearish Order Block at {highs[i]:.2f}",
+                                metadata={"ob_high": float(highs[i]), "ob_low": float(lows[i])},
+                            )
+                        )
+                        break
+
+        return out
+
+    def _fvg(self, df: pd.DataFrame) -> List[PatternResult]:
+        """
+        Detect Fair Value Gaps (FVG): imbalance zones where price moved too fast.
+        - Bullish FVG: gap between candle[i-1] high and candle[i+1] low (in uptrend).
+        - Bearish FVG: gap between candle[i-1] low and candle[i+1] high (in downtrend).
+        """
+        out = []
+        highs = df["high"].values
+        lows = df["low"].values
+        n = len(highs)
+        if n < 5:
+            return out
+
+        # Look for FVGs in last 20 candles
+        for i in range(max(1, n - 20), n - 1):
+            # Bullish FVG: candle[i-1].high < candle[i+1].low
+            if i + 1 < n and highs[i - 1] < lows[i + 1]:
+                gap_low = highs[i - 1]
+                gap_high = lows[i + 1]
+                out.append(
+                    PatternResult(
+                        pattern_type=PatternType.FVG_BULLISH.value,
+                        confidence=0.7,
+                        level_or_price=float((gap_low + gap_high) / 2),
+                        description=f"Bullish FVG zone {gap_low:.2f} - {gap_high:.2f}",
+                        metadata={"fvg_low": float(gap_low), "fvg_high": float(gap_high)},
+                    )
+                )
+
+            # Bearish FVG: candle[i-1].low > candle[i+1].high
+            if i + 1 < n and lows[i - 1] > highs[i + 1]:
+                gap_low = highs[i + 1]
+                gap_high = lows[i - 1]
+                out.append(
+                    PatternResult(
+                        pattern_type=PatternType.FVG_BEARISH.value,
+                        confidence=0.7,
+                        level_or_price=float((gap_low + gap_high) / 2),
+                        description=f"Bearish FVG zone {gap_low:.2f} - {gap_high:.2f}",
+                        metadata={"fvg_low": float(gap_low), "fvg_high": float(gap_high)},
+                    )
+                )
+
+        return out
+

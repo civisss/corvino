@@ -9,7 +9,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [timeLeft, setTimeLeft] = useState(300) // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(600) // 10 minutes in seconds
   const [prices, setPrices] = useState<Record<string, number>>({})
   const [decimalsMap, setDecimalsMap] = useState<Record<string, number>>({})
 
@@ -77,7 +77,7 @@ export default function Dashboard() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           handleGenerate()
-          return 300 // Reset to 5 mins
+          return 600 // Reset to 10 mins
         }
         return prev - 1
       })
