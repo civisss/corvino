@@ -52,6 +52,7 @@ export default function SignalsHistory() {
           <option value="BTC/USDT:USDT">BTC</option>
           <option value="ETH/USDT:USDT">ETH</option>
           <option value="SOL/USDT:USDT">SOL</option>
+          <option value="XRP/USDT:USDT">SOL</option>
         </select>
         <select
           value={timeframe}

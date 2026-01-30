@@ -119,6 +119,7 @@ Respond with a single JSON object, no markdown, with this exact structure:
         patterns: List[Dict[str, Any]],
         supports: List[float],
         resistances: List[float],
+        news_sentiment: Optional[str] = None,
         risk_scenarios: Optional[Dict[str, Any]] = None,
     ) -> AIAnalysisResult:
         prompt = self._build_prompt(
