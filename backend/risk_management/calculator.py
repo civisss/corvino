@@ -105,6 +105,7 @@ class RiskCalculator:
         # Max SL distance = 1.5 ATR (tighter stops)
         max_sl_dist = 1.5 * atr
         min_dist = 0.3 * atr  # Min distance to avoid noise
+        sl_buffer = 0.3 * atr  # Buffer beyond the level to avoid wicks
 
         sl = 0.0
         tps = []
@@ -130,7 +131,7 @@ class RiskCalculator:
             sl_candidates = sorted([s for s in sl_candidates if min_dist <= (entry - s) <= max_sl_dist], reverse=True)
             
             if sl_candidates:
-                sl = sl_candidates[0] - (0.1 * atr)  # Small buffer
+                sl = sl_candidates[0] - sl_buffer  # Buffer below support
             else:
                 # Fallback: max allowed distance
                 sl = entry - max_sl_dist
@@ -170,7 +171,7 @@ class RiskCalculator:
             sl_candidates = sorted([r for r in sl_candidates if min_dist <= (r - entry) <= max_sl_dist])
             
             if sl_candidates:
-                sl = sl_candidates[0] + (0.1 * atr)  # Small buffer
+                sl = sl_candidates[0] + sl_buffer  # Buffer above resistance
             else:
                 # Fallback: max allowed distance
                 sl = entry + max_sl_dist
@@ -190,6 +191,13 @@ class RiskCalculator:
 
         # Risk/Reward Calc
         risk = abs(entry - sl)
+        
+        # Ensure TPs are properly ordered: ascending for LONG, descending for SHORT
+        if direction.upper() == "LONG":
+            tps = sorted(tps)  # Ascending: TP1 < TP2 < TP3
+        else:
+            tps = sorted(tps, reverse=True)  # Descending: TP1 > TP2 > TP3
+        
         tp1, tp2, tp3 = tps[0], tps[1], tps[2]
         
         # Adjust TP1 to ensure min R:R of 1.5 on first target

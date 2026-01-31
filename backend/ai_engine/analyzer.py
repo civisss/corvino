@@ -74,12 +74,18 @@ class AIAnalyzer:
 Proposed Risk Setups (based on Support/Resistance/Order Blocks/FVG):
 LONG:  SL {long_s.get('sl', 0):.2f} | TPs {[round(t, 2) for t in long_s.get('tps', [])]} | R:R {long_s.get('rr', 0):.2f}
 SHORT: SL {short_s.get('sl', 0):.2f} | TPs {[round(t, 2) for t in short_s.get('tps', [])]} | R:R {short_s.get('rr', 0):.2f}
-
-IMPORTANT RISK VALIDATION:
-- Only recommend a direction if R:R >= 1.5. If both scenarios have R:R < 1.5, output NEUTRAL.
-- Verify that the SL is placed at a logical invalidation level (below key support for LONG, above key resistance for SHORT).
-- If the proposed SL seems too tight or too wide, mention it in risk_factors.
 """
+        
+        # BTC correlation warning for altcoins
+        btc_check = ""
+        if asset and "BTC" not in asset.upper():
+            btc_check = """
+6. BTC CORRELATION (CRITICAL for altcoins):
+   - Before recommending LONG, ensure BTC is not showing bearish signals.
+   - Before recommending SHORT, ensure BTC is not showing strong bullish momentum.
+   - If BTC trend contradicts your signal, lower confidence significantly or output NEUTRAL.
+"""
+
         return f"""You are a quantitative crypto trading analyst specializing in ICT (Inner Circle Trader) concepts. 
 Based ONLY on the following data, output a trading signal analysis.
 
@@ -97,13 +103,41 @@ Resistance levels (nearest): {resistances[:5]}
 {f'News/macro sentiment: {news_sentiment}' if news_sentiment else ''}
 {scenarios_text}
 
-Instructions:
-1. Decide direction: LONG or SHORT (or NEUTRAL if conditions are unclear OR if R:R < 1.5 for both directions).
-2. Assign a confidence score between 0 and 100. Consider R:R ratio in your confidence assessment.
-3. Validate the proposed SL/TP levels - mention any concerns in risk_factors.
-4. Provide a structured explanation with: summary, technical_reasoning (list), pattern_reasoning (list), risk_factors (list), invalidation_conditions (list).
+=== MANDATORY VALIDATION CHECKS ===
 
-Respond with a single JSON object, no markdown, with this exact structure:
+1. MARKET STRUCTURE (BOS/MSS):
+   - Look for Break of Structure (BOS) or Market Structure Shift (MSS) in the data.
+   - LONG is valid only after a bullish BOS (higher high breaking previous swing high).
+   - SHORT is valid only after a bearish BOS (lower low breaking previous swing low).
+   - If structure is unclear or ranging, prefer NEUTRAL.
+
+2. LEVEL CONFLUENCE:
+   - Check if SL/TP levels align with multiple factors (S/R + OB + FVG).
+   - Higher confluence = higher confidence. Mention confluence in pattern_reasoning.
+   - Single-factor levels are weaker; reduce confidence accordingly.
+
+3. LIQUIDITY & STOP HUNT AWARENESS:
+   - Identify nearby liquidity pools (equal highs/lows, round numbers like .000).
+   - If price is near a liquidity zone, a "stop hunt" may occur before the real move.
+   - Warn in risk_factors if SL could be swept by a wick before reversal.
+
+4. NEWS/EVENTS CHECK:
+   - If news_sentiment mentions FOMC, CPI, ETF decisions, or major events, warn in risk_factors.
+   - Reduce confidence before high-impact events.
+   - Prefer NEUTRAL if major event is imminent (within 24h).
+
+5. RISK VALIDATION:
+   - Only recommend a direction if R:R >= 1.5. Otherwise output NEUTRAL.
+   - Verify SL is at a logical invalidation level.
+   - TPs must be ordered: LONG (TP1 < TP2 < TP3), SHORT (TP1 > TP2 > TP3).
+{btc_check}
+Instructions:
+1. Decide direction: LONG, SHORT, or NEUTRAL (if unclear, R:R < 1.5, or structure invalid).
+2. Assign confidence 0-100. Factor in: R:R, confluence, structure, liquidity risk, BTC correlation.
+3. Validate SL/TP levels - mention concerns in risk_factors.
+4. Provide structured explanation: summary, technical_reasoning, pattern_reasoning, risk_factors, invalidation_conditions.
+
+Respond with a single JSON object, no markdown:
 {{
   "confidence_score": <number 0-100>,
   "direction": "LONG" or "SHORT" or "NEUTRAL",
