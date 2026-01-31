@@ -104,6 +104,12 @@ def update_signal(signal_id: str, body: SignalUpdate, db: Session = Depends(get_
         s.pnl_pct = body.pnl_pct
     if body.closed_at is not None:
         s.closed_at = body.closed_at
+    if body.tp1_hit is not None:
+        s.tp1_hit = body.tp1_hit
+    if body.tp2_hit is not None:
+        s.tp2_hit = body.tp2_hit
+    if body.tp3_hit is not None:
+        s.tp3_hit = body.tp3_hit
     db.commit()
     db.refresh(s)
     return s

@@ -21,7 +21,14 @@ export default function SignalCard({ signal, currentPrice, decimals = 2 }: Signa
     : null
 
   // Highlight logic
-  const checkHit = (level: number, type: 'sl' | 'tp') => {
+  const checkHit = (level: number, type: 'sl' | 'tp', index?: number) => {
+    // Check persistent hits first
+    if (type === 'tp') {
+      if (index === 1 && signal.tp1_hit) return 'hit-success'
+      if (index === 2 && signal.tp2_hit) return 'hit-success'
+      if (index === 3 && signal.tp3_hit) return 'hit-success'
+    }
+
     if (!currentPrice) return ''
     if (isLong) {
       if (type === 'tp' && currentPrice >= level) return 'hit-success'
@@ -72,18 +79,18 @@ export default function SignalCard({ signal, currentPrice, decimals = 2 }: Signa
             </div>
           </div>
           <div className="level-row tp-levels">
-            <div className={`level ${checkHit(signal.take_profit_1, 'tp')}`}>
+            <div className={`level ${checkHit(signal.take_profit_1, 'tp', 1)}`}>
               <span className="label">TP1</span>
               <span className={`value mono success`}>{signal.take_profit_1.toFixed(decimals)}</span>
             </div>
             {signal.take_profit_2 != null && (
-              <div className={`level ${checkHit(signal.take_profit_2, 'tp')}`}>
+              <div className={`level ${checkHit(signal.take_profit_2, 'tp', 2)}`}>
                 <span className="label">TP2</span>
                 <span className={`value mono success`}>{signal.take_profit_2.toFixed(decimals)}</span>
               </div>
             )}
             {signal.take_profit_3 != null && (
-              <div className={`level ${checkHit(signal.take_profit_3, 'tp')}`}>
+              <div className={`level ${checkHit(signal.take_profit_3, 'tp', 3)}`}>
                 <span className="label">TP3</span>
                 <span className={`value mono success`}>{signal.take_profit_3.toFixed(decimals)}</span>
               </div>

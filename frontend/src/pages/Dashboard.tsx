@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchActiveSignals, fetchStatsOverview, triggerGenerate, fetchCurrentPrices, fetchConfig, closeSignal } from '../api/client'
+import { fetchActiveSignals, fetchStatsOverview, triggerGenerate, fetchCurrentPrices, fetchConfig, closeSignal, updateSignalHits } from '../api/client'
 import SignalCard from '../components/SignalCard'
 import './Dashboard.css'
 
@@ -46,7 +46,32 @@ export default function Dashboard() {
         exitPrice = s.stop_loss
       }
 
-      // Check TP3 hit (full take profit)
+      // Check TP hits and persist them
+      const hits: any = {}
+      if (isLong) {
+        if (!s.tp1_hit && price >= s.take_profit_1) hits.tp1 = true
+        if (!s.tp2_hit && s.take_profit_2 && price >= s.take_profit_2) hits.tp2 = true
+        if (!s.tp3_hit && s.take_profit_3 && price >= s.take_profit_3) hits.tp3 = true
+      } else {
+        if (!s.tp1_hit && price <= s.take_profit_1) hits.tp1 = true
+        if (!s.tp2_hit && s.take_profit_2 && price <= s.take_profit_2) hits.tp2 = true
+        if (!s.tp3_hit && s.take_profit_3 && price <= s.take_profit_3) hits.tp3 = true
+      }
+
+      if (Object.keys(hits).length > 0) {
+        try {
+          console.log(`Updating TP hits for signal ${s.id}:`, hits)
+          await updateSignalHits(s.id, hits)
+          // We don't call load() immediately to avoid too many refreshes,
+          // it will be refreshed on next interval or we can update local state.
+          // For immediate UI update, we could update the 'active' state locally.
+          setActive(prev => prev.map(item => item.id === s.id ? { ...item, ...hits.tp1 && { tp1_hit: true }, ...hits.tp2 && { tp2_hit: true }, ...hits.tp3 && { tp3_hit: true } } : item))
+        } catch (err) {
+          console.error('Failed to update TP hits:', err)
+        }
+      }
+
+      // Check TP3 hit (full take profit) -> trigger close
       if (s.take_profit_3) {
         if (isLong && price >= s.take_profit_3) {
           shouldClose = true

@@ -21,6 +21,9 @@ export interface SignalResponse {
     risk_factors?: string[]
     invalidation_conditions?: string[]
   }
+  tp1_hit?: boolean
+  tp2_hit?: boolean
+  tp3_hit?: boolean
   status: string
   exit_price?: number
   pnl_pct?: number
@@ -119,6 +122,21 @@ export async function closeSignal(signalId: string, exitPrice: number): Promise<
     })
   })
   if (!res.ok) throw new Error('Failed to close signal')
+  return res.json()
+}
+
+export async function updateSignalHits(signalId: string, hits: { tp1?: boolean, tp2?: boolean, tp3?: boolean }): Promise<SignalResponse> {
+  const payload: any = {}
+  if (hits.tp1 !== undefined) payload.tp1_hit = hits.tp1
+  if (hits.tp2 !== undefined) payload.tp2_hit = hits.tp2
+  if (hits.tp3 !== undefined) payload.tp3_hit = hits.tp3
+
+  const res = await fetch(`${API_BASE}/signals/${signalId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  if (!res.ok) throw new Error('Failed to update signal hits')
   return res.json()
 }
 

@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, String, Float, DateTime, Enum as SQLEnum, Text, JSON
+from sqlalchemy import Column, String, Float, DateTime, Enum as SQLEnum, Text, JSON, Boolean
 
 from .database import Base
 
@@ -36,6 +36,11 @@ class Signal(Base):
     invalidation_conditions = Column(Text, nullable=True)
     confidence_score = Column(Float, nullable=False)
     explanation = Column(JSON, nullable=True)
+    
+    tp1_hit = Column(Boolean, default=False)
+    tp2_hit = Column(Boolean, default=False)
+    tp3_hit = Column(Boolean, default=False)
+
     status = Column(SQLEnum(SignalStatus), default=SignalStatus.ACTIVE, index=True)
     exit_price = Column(Float, nullable=True)
     pnl_pct = Column(Float, nullable=True)
@@ -68,6 +73,9 @@ class SignalUpdate(BaseModel):
     exit_price: Optional[float] = None
     pnl_pct: Optional[float] = None
     closed_at: Optional[datetime] = None
+    tp1_hit: Optional[bool] = None
+    tp2_hit: Optional[bool] = None
+    tp3_hit: Optional[bool] = None
 
 
 class SignalResponse(BaseModel):
@@ -85,6 +93,9 @@ class SignalResponse(BaseModel):
     invalidation_conditions: Optional[str] = None
     confidence_score: float
     explanation: Optional[dict] = None
+    tp1_hit: bool = False
+    tp2_hit: bool = False
+    tp3_hit: bool = False
     status: str
     exit_price: Optional[float] = None
     pnl_pct: Optional[float] = None
