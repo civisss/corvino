@@ -202,11 +202,24 @@ class RiskCalculator:
         
         # Adjust TP1 to ensure min R:R of 1.5 on first target
         min_reward = 1.5 * risk
-        if abs(entry - tp1) < min_reward:
-            if direction.upper() == "LONG":
+        tp_min_dist = 0.5 * atr  # Minimum distance between TP levels
+
+        if direction.upper() == "LONG":
+            if (tp1 - entry) < min_reward:
                 tp1 = entry + min_reward
-            else:
+            # Ensure sequence: entry < tp1 < tp2 < tp3
+            if tp2 < tp1 + tp_min_dist:
+                tp2 = tp1 + tp_min_dist
+            if tp3 < tp2 + tp_min_dist:
+                tp3 = tp2 + tp_min_dist
+        else:  # SHORT
+            if (entry - tp1) < min_reward:
                 tp1 = entry - min_reward
+            # Ensure sequence: entry > tp1 > tp2 > tp3
+            if tp2 > tp1 - tp_min_dist:
+                tp2 = tp1 - tp_min_dist
+            if tp3 > tp2 - tp_min_dist:
+                tp3 = tp2 - tp_min_dist
         
         reward_avg = (abs(entry - tp1) + abs(entry - tp2) + abs(entry - tp3)) / 3
         risk_reward = reward_avg / risk if risk > 0 else 0.0

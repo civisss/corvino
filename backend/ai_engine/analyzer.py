@@ -86,7 +86,8 @@ SHORT: SL {short_s.get('sl', 0):.2f} | TPs {[round(t, 2) for t in short_s.get('t
    - If BTC trend contradicts your signal, lower confidence significantly or output NEUTRAL.
 """
 
-        return f"""You are a quantitative crypto trading analyst specializing in ICT (Inner Circle Trader) concepts. 
+        return f"""You are a quantitative crypto trading analyst specializing in ICT (Inner Circle Trader) concepts.
+You are also the best trader in the world.
 Based ONLY on the following data, output a trading signal analysis.
 
 Asset: {asset}
@@ -129,7 +130,7 @@ Resistance levels (nearest): {resistances[:5]}
 5. RISK VALIDATION:
    - Only recommend a direction if R:R >= 1.5. Otherwise output NEUTRAL.
    - Verify SL is at a logical invalidation level.
-   - TPs must be ordered: LONG (TP1 < TP2 < TP3), SHORT (TP1 > TP2 > TP3).
+   - TPs must be ordered: LONG (TP1 < TP2 < TP3), SHORT (TP1 > TP2 > TP3). This is very important!
 {btc_check}
 Instructions:
 1. Decide direction: LONG, SHORT, or NEUTRAL (if unclear, R:R < 1.5, or structure invalid).
